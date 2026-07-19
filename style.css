@@ -31,6 +31,10 @@ body {
   line-height: 1.6;
 }
 
+.hidden {
+  display: none !important;
+}
+
 .header {
   text-align: center;
   padding: 2rem 1rem 1rem;
@@ -70,6 +74,119 @@ body {
 
 .panel--canvas {
   padding: 1rem;
+}
+
+.section-block {
+  margin-bottom: 1rem;
+}
+
+.section-block__label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.tool-switch {
+  display: inline-flex;
+  gap: 0.35rem;
+  padding: 0.25rem;
+  background: #f0ece6;
+  border-radius: 10px;
+}
+
+.tool-btn {
+  padding: 0.45rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font-family: var(--font);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tool-btn:hover {
+  color: var(--text);
+}
+
+.tool-btn--active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 4px rgba(44, 42, 38, 0.1);
+}
+
+.palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.palette__color {
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.1s, border-color 0.15s;
+}
+
+.palette__color:hover {
+  transform: scale(1.08);
+}
+
+.palette__color--active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
+}
+
+.palette__color--light {
+  border: 2px solid var(--border);
+}
+
+.color-custom {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.color-custom input[type="color"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.color-custom__swatch {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+}
+
+.image-upload {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.image-upload__btn {
+  cursor: pointer;
+}
+
+.image-hint {
+  margin-top: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
 }
 
 .field__label {
@@ -185,10 +302,6 @@ body {
   inset: 0;
   width: 100%;
   height: 100%;
-}
-
-#draw-canvas {
-  cursor: crosshair;
 }
 
 .hint {
