@@ -21,6 +21,7 @@
   const imagePosYInput = document.getElementById("image-pos-y");
   const btnClear = document.getElementById("btn-clear");
   const btnUndo = document.getElementById("btn-undo");
+  const btnRedo = document.getElementById("btn-redo");
   const btnRemoveImage = document.getElementById("btn-remove-image");
   const btnConfirmImage = document.getElementById("btn-confirm-image");
   const btnReeditImage = document.getElementById("btn-reedit-image");
@@ -46,6 +47,7 @@
   let isDrawing = false;
   let lastPoint = null;
   const actionHistory = [];
+  const redoHistory = [];
   let currentTool = "pen";
   let currentBrush = "pen";
   let currentColor = KID_COLORS[0];
@@ -442,6 +444,23 @@
     return { type: "fill", x: startX, y: startY, color: fillColor };
   }
 
+  function pushAction(action) {
+    actionHistory.push(action);
+    redoHistory.length = 0;
+  }
+
+  function undoAction() {
+    if (actionHistory.length === 0) return;
+    redoHistory.push(actionHistory.pop());
+    redrawActions();
+  }
+
+  function redoAction() {
+    if (redoHistory.length === 0) return;
+    actionHistory.push(redoHistory.pop());
+    redrawActions();
+  }
+
   function redrawActions() {
     drawCtx.setTransform(1, 0, 0, 1, 0, 0);
     drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
@@ -481,13 +500,13 @@
 
     if (currentTool === "fill") {
       const fillAction = floodFill(point.x, point.y, currentColor);
-      if (fillAction) actionHistory.push(fillAction);
+      if (fillAction) pushAction(fillAction);
       return;
     }
 
     isDrawing = true;
     lastPoint = point;
-    actionHistory.push({
+    pushAction({
       type: "stroke",
       color: currentColor,
       brush: currentBrush,
@@ -575,13 +594,12 @@
 
     btnClear.addEventListener("click", () => {
       actionHistory.length = 0;
+      redoHistory.length = 0;
       drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
     });
 
-    btnUndo.addEventListener("click", () => {
-      actionHistory.pop();
-      redrawActions();
-    });
+    btnUndo.addEventListener("click", undoAction);
+    btnRedo.addEventListener("click", redoAction);
 
     btnConfirmImage.addEventListener("click", confirmImage);
     btnReeditImage.addEventListener("click", reeditImage);
