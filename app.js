@@ -21,6 +21,8 @@
   const btnImageSmaller = document.getElementById("btn-image-smaller");
   const imageInput = document.getElementById("image-input");
   const imageEditBar = document.getElementById("image-edit-bar");
+  const imageActionsRow = document.getElementById("image-actions-row");
+  const dock = document.getElementById("dock");
   const canvasWrapper = document.getElementById("canvas-wrapper");
   const guideCanvas = document.getElementById("guide-canvas");
   const drawCanvas = document.getElementById("draw-canvas");
@@ -88,9 +90,17 @@
     const editing = isImageEditActive();
 
     imageEditBar.classList.toggle("hidden", !editing);
+    imageActionsRow.classList.toggle("hidden", !hasImage);
     canvasWrapper.classList.toggle("canvas-wrapper--image-edit", editing);
-    btnRemoveImage.classList.toggle("hidden", !(hasImage && imageTransform.locked));
     btnReeditImage.classList.toggle("hidden", !hasImage || editing);
+    updateLayout();
+  }
+
+  function updateLayout() {
+    if (!dock) return;
+    const dockHeight = dock.offsetHeight + 8;
+    document.documentElement.style.setProperty("--dock-h", `${dockHeight}px`);
+    resizeCanvases();
   }
 
   function resetImageTransform() {
@@ -531,11 +541,15 @@
     drawCanvas.addEventListener("touchend", stopDrawing);
     drawCanvas.addEventListener("touchcancel", stopDrawing);
 
-    window.addEventListener("resize", resizeCanvases);
+    window.addEventListener("resize", updateLayout);
 
     if (typeof ResizeObserver !== "undefined") {
-      const observer = new ResizeObserver(() => resizeCanvases());
-      observer.observe(canvasWrapper);
+      let layoutTimer = null;
+      const observer = new ResizeObserver(() => {
+        clearTimeout(layoutTimer);
+        layoutTimer = setTimeout(updateLayout, 50);
+      });
+      observer.observe(dock);
     }
   }
 
@@ -544,7 +558,7 @@
     setGuideLayer("back");
     bindEvents();
     requestAnimationFrame(() => {
-      resizeCanvases();
+      updateLayout();
       updateImageEditUI();
     });
   }
