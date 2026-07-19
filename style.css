@@ -134,6 +134,34 @@ body {
   margin-bottom: 0;
 }
 
+.dock__brushes {
+  margin-bottom: 0.35rem;
+}
+
+.big-btn--brush {
+  flex: 1;
+  min-height: 52px;
+  padding: 0.2rem 0.1rem;
+}
+
+.big-btn--brush.big-btn--active {
+  background: #f3eeff;
+  border-color: #9b7fd4;
+  box-shadow: 0 3px 0 #9b7fd4;
+}
+
+.big-btn--brush .big-btn__icon {
+  font-size: 1.25rem;
+}
+
+.big-btn--brush .big-btn__label {
+  font-size: 0.58rem;
+}
+
+.dock__brushes.hidden {
+  display: none;
+}
+
 .dock__colors {
   display: flex;
   justify-content: center;
