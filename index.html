@@ -12,31 +12,70 @@
 <body>
   <header class="header">
     <h1 class="header__title">なぞり書き練習</h1>
-    <p class="header__subtitle">半透明の文字の上をなぞって練習しましょう</p>
+    <p class="header__subtitle">文字や画像の上をなぞったり、色を塗って練習しましょう</p>
   </header>
 
   <main class="main">
     <section class="panel panel--controls" aria-label="設定">
-      <label class="field">
-        <span class="field__label">練習テキスト</span>
-        <textarea
-          id="practice-text"
-          class="field__textarea"
-          rows="4"
-          placeholder="ここに練習したい文字を入力してください&#10;例：あいうえお&#10;     ABCDEFG"
-        >あいうえお
+      <div class="section-block">
+        <span class="section-block__label">ツール</span>
+        <div class="tool-switch" role="group" aria-label="描画ツール">
+          <button type="button" id="tool-pen" class="tool-btn tool-btn--active" data-tool="pen" aria-pressed="true">ペン</button>
+          <button type="button" id="tool-fill" class="tool-btn" data-tool="fill" aria-pressed="false">塗りつぶし</button>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <span class="section-block__label">色</span>
+        <div class="palette" id="color-palette" role="group" aria-label="カラーパレット"></div>
+        <label class="color-custom">
+          <span class="color-custom__swatch" id="custom-color-swatch"></span>
+          <input type="color" id="custom-color" value="#2c2a26" aria-label="カスタム色">
+          <span>カスタム</span>
+        </label>
+      </div>
+
+      <div class="section-block">
+        <span class="section-block__label">ガイド</span>
+        <div class="tool-switch" role="group" aria-label="ガイドの種類">
+          <button type="button" id="guide-text" class="tool-btn tool-btn--active" data-guide="text" aria-pressed="true">テキスト</button>
+          <button type="button" id="guide-image" class="tool-btn" data-guide="image" aria-pressed="false">画像</button>
+        </div>
+      </div>
+
+      <div id="text-guide-panel">
+        <label class="field">
+          <span class="field__label">練習テキスト</span>
+          <textarea
+            id="practice-text"
+            class="field__textarea"
+            rows="4"
+            placeholder="ここに練習したい文字を入力してください&#10;例：あいうえお&#10;     ABCDEFG"
+          >あいうえお
 かきくけこ
 さしすせそ</textarea>
-      </label>
+        </label>
+      </div>
+
+      <div id="image-guide-panel" class="hidden">
+        <div class="image-upload">
+          <label class="btn btn--secondary image-upload__btn">
+            画像を選ぶ
+            <input type="file" id="image-input" accept="image/*" hidden>
+          </label>
+          <button type="button" id="btn-remove-image" class="btn btn--secondary hidden">画像を削除</button>
+        </div>
+        <p class="image-hint">画像は白黒のガイドとして表示されます</p>
+      </div>
 
       <div class="controls">
-        <label class="control">
+        <label class="control control--text-only">
           <span class="control__label">文字サイズ</span>
           <input type="range" id="font-size" min="24" max="120" value="64">
           <span id="font-size-value" class="control__value">64px</span>
         </label>
 
-        <label class="control">
+        <label class="control control--text-only">
           <span class="control__label">行間</span>
           <input type="range" id="line-height" min="1.2" max="3" step="0.1" value="1.8">
           <span id="line-height-value" class="control__value">1.8</span>
@@ -44,21 +83,21 @@
 
         <label class="control">
           <span class="control__label">ペンの太さ</span>
-          <input type="range" id="stroke-width" min="1" max="12" value="3">
+          <input type="range" id="stroke-width" min="1" max="24" value="3">
           <span id="stroke-width-value" class="control__value">3px</span>
         </label>
 
         <label class="control">
           <span class="control__label">ガイドの濃さ</span>
-          <input type="range" id="guide-opacity" min="0.05" max="0.5" step="0.05" value="0.2">
-          <span id="guide-opacity-value" class="control__value">20%</span>
+          <input type="range" id="guide-opacity" min="0.05" max="0.8" step="0.05" value="0.25">
+          <span id="guide-opacity-value" class="control__value">25%</span>
         </label>
       </div>
 
       <div class="actions">
-        <button type="button" id="btn-clear" class="btn btn--secondary">なぞりを消す</button>
+        <button type="button" id="btn-clear" class="btn btn--secondary">描画を消す</button>
         <button type="button" id="btn-undo" class="btn btn--secondary">ひとつ戻す</button>
-        <button type="button" id="btn-update" class="btn btn--primary">テキストを反映</button>
+        <button type="button" id="btn-update" class="btn btn--primary control--text-only-btn">テキストを反映</button>
       </div>
     </section>
 
@@ -67,7 +106,7 @@
         <canvas id="guide-canvas" aria-hidden="true"></canvas>
         <canvas id="draw-canvas" aria-label="なぞり書きキャンバス"></canvas>
       </div>
-      <p class="hint">マウス・指・ペンで文字の上をなぞってください</p>
+      <p class="hint" id="canvas-hint">マウス・指・ペンでなぞってください</p>
     </section>
   </main>
 
