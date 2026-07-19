@@ -4,6 +4,13 @@
     "#43a047", "#1e88e5", "#8e24aa",
   ];
 
+  const BRUSH_CONFIG = {
+    pen: { widthMult: 1, alpha: 1 },
+    marker: { widthMult: 2.4, alpha: 0.4 },
+    crayon: { widthMult: 1.5, alpha: 0.7 },
+    brush: { widthMult: 2.6, alpha: 0.65 },
+  };
+
   const practiceText = document.getElementById("practice-text");
   const fontSizeInput = document.getElementById("font-size");
   const lineHeightInput = document.getElementById("line-height");
@@ -27,7 +34,9 @@
   const guideCanvas = document.getElementById("guide-canvas");
   const drawCanvas = document.getElementById("draw-canvas");
   const colorPalette = document.getElementById("color-palette");
+  const brushRow = document.getElementById("brush-row");
   const toolButtons = document.querySelectorAll("[data-tool]");
+  const brushButtons = document.querySelectorAll("[data-brush]");
   const layerButtons = document.querySelectorAll("[data-layer]");
 
   const guideCtx = guideCanvas.getContext("2d");
@@ -38,6 +47,7 @@
   let lastPoint = null;
   const actionHistory = [];
   let currentTool = "pen";
+  let currentBrush = "pen";
   let currentColor = KID_COLORS[0];
   let guideImage = null;
   let guideLayer = "back";
@@ -158,7 +168,65 @@
       btn.classList.toggle("big-btn--active", active);
       btn.setAttribute("aria-pressed", String(active));
     });
+    brushRow.classList.toggle("hidden", tool !== "pen");
     drawCanvas.classList.toggle("cursor-fill", tool === "fill" && !isImageEditActive());
+  }
+
+  function setBrush(brush) {
+    if (!BRUSH_CONFIG[brush]) return;
+    currentBrush = brush;
+    brushButtons.forEach((btn) => {
+      const active = btn.dataset.brush === brush;
+      btn.classList.toggle("big-btn--active", active);
+      btn.setAttribute("aria-pressed", String(active));
+    });
+    if (currentTool !== "pen") setTool("pen");
+  }
+
+  function getBrushWidth(baseWidth, brushType) {
+    const config = BRUSH_CONFIG[brushType] || BRUSH_CONFIG.pen;
+    return baseWidth * config.widthMult;
+  }
+
+  function drawStrokeSegment(ctx, from, to, color, baseWidth, brushType) {
+    const config = BRUSH_CONFIG[brushType] || BRUSH_CONFIG.pen;
+    const width = baseWidth * config.widthMult;
+
+    ctx.save();
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = color;
+
+    if (brushType === "crayon") {
+      const offsets = [[0, 0], [1.2, 0.8], [-1, 0.5], [0.5, -1], [-0.8, -0.6]];
+      for (const [ox, oy] of offsets) {
+        ctx.globalAlpha = config.alpha * 0.45;
+        ctx.lineWidth = width * 0.55;
+        ctx.beginPath();
+        ctx.moveTo(from.x + ox, from.y + oy);
+        ctx.lineTo(to.x + ox, to.y + oy);
+        ctx.stroke();
+      }
+    } else if (brushType === "brush") {
+      ctx.globalAlpha = config.alpha;
+      ctx.lineWidth = width;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = width * 0.35;
+      ctx.beginPath();
+      ctx.moveTo(from.x, from.y);
+      ctx.lineTo(to.x, to.y);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    } else {
+      ctx.globalAlpha = config.alpha;
+      ctx.lineWidth = width;
+      ctx.beginPath();
+      ctx.moveTo(from.x, from.y);
+      ctx.lineTo(to.x, to.y);
+      ctx.stroke();
+    }
+
+    ctx.restore();
   }
 
   function setGuideLayer(layer) {
@@ -295,16 +363,17 @@
 
   function drawStroke(stroke) {
     if (stroke.points.length < 2) return;
-    drawCtx.lineCap = "round";
-    drawCtx.lineJoin = "round";
-    drawCtx.strokeStyle = stroke.color;
-    drawCtx.lineWidth = stroke.points[0].width;
-    drawCtx.beginPath();
-    drawCtx.moveTo(stroke.points[0].x, stroke.points[0].y);
+    const brushType = stroke.brush || "pen";
     for (let i = 1; i < stroke.points.length; i++) {
-      drawCtx.lineTo(stroke.points[i].x, stroke.points[i].y);
+      drawStrokeSegment(
+        drawCtx,
+        stroke.points[i - 1],
+        stroke.points[i],
+        stroke.color,
+        stroke.points[0].width,
+        brushType
+      );
     }
-    drawCtx.stroke();
   }
 
   function hexToRgba(hex) {
@@ -421,6 +490,7 @@
     actionHistory.push({
       type: "stroke",
       color: currentColor,
+      brush: currentBrush,
       points: [{ ...point, width: Number(strokeWidthInput.value) * dpr }],
     });
   }
@@ -448,15 +518,7 @@
     const point = getPointerPosition(event);
     const stroke = actionHistory[actionHistory.length - 1];
     stroke.points.push({ ...point, width: stroke.points[0].width });
-
-    drawCtx.lineCap = "round";
-    drawCtx.lineJoin = "round";
-    drawCtx.strokeStyle = stroke.color;
-    drawCtx.lineWidth = stroke.points[0].width;
-    drawCtx.beginPath();
-    drawCtx.moveTo(lastPoint.x, lastPoint.y);
-    drawCtx.lineTo(point.x, point.y);
-    drawCtx.stroke();
+    drawStrokeSegment(drawCtx, lastPoint, point, stroke.color, stroke.points[0].width, stroke.brush);
     lastPoint = point;
   }
 
@@ -501,6 +563,10 @@
   function bindEvents() {
     toolButtons.forEach((btn) => {
       btn.addEventListener("click", () => setTool(btn.dataset.tool));
+    });
+
+    brushButtons.forEach((btn) => {
+      btn.addEventListener("click", () => setBrush(btn.dataset.brush));
     });
 
     layerButtons.forEach((btn) => {
@@ -555,6 +621,7 @@
 
   function init() {
     buildPalette();
+    setBrush("pen");
     setGuideLayer("back");
     bindEvents();
     requestAnimationFrame(() => {
