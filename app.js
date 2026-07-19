@@ -141,23 +141,23 @@
 
     const scaledFontSize = fontSize * dpr;
     const padding = 24 * dpr;
-    const maxWidth = guideCanvas.width - padding * 2;
     const lineGap = scaledFontSize * lineHeight;
+    const centerX = guideCanvas.width / 2;
 
     guideCtx.font = `${scaledFontSize}px "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif`;
     guideCtx.fillStyle = `rgba(120, 116, 108, ${guideOpacity})`;
+    guideCtx.textAlign = "center";
     guideCtx.textBaseline = "top";
 
     const lines = text.split("\n");
-    let y = padding;
+    const totalHeight = lines.length * lineGap;
+    let y = Math.max(padding, (guideCanvas.height - totalHeight) / 2);
 
     for (const line of lines) {
       if (y + scaledFontSize > guideCanvas.height - padding) break;
-      if (line.trim() === "") {
-        y += lineGap;
-        continue;
+      if (line.trim() !== "") {
+        guideCtx.fillText(line, centerX, y);
       }
-      guideCtx.fillText(line, padding, y, maxWidth);
       y += lineGap;
     }
   }
