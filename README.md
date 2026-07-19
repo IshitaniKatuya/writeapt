@@ -21,6 +21,16 @@
 
 公開 URL: https://ishitanikatuya.github.io/writeapt/
 
+### 初回セットアップ（1回だけ）
+
+GitHub Pages を有効にするため、リポジトリオーナーが以下を行ってください。
+
+1. [リポジトリの Pages 設定](https://github.com/IshitaniKatuya/writeapt/settings/pages) を開く
+2. **Build and deployment** → **Source** で **GitHub Actions** を選択
+3. [Actions タブ](https://github.com/IshitaniKatuya/writeapt/actions/workflows/deploy.yml) から「Deploy to GitHub Pages」ワークフローを **Re-run all jobs** で再実行
+
+完了後、数分で上記 URL からアプリにアクセスできます。
+
 ## ローカルで試す
 
 ```bash
