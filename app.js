@@ -444,21 +444,29 @@
     return { type: "fill", x: startX, y: startY, color: fillColor };
   }
 
+  function updateHistoryButtons() {
+    btnUndo.classList.toggle("big-btn--disabled", actionHistory.length === 0);
+    btnRedo.classList.toggle("big-btn--disabled", redoHistory.length === 0);
+  }
+
   function pushAction(action) {
     actionHistory.push(action);
     redoHistory.length = 0;
+    updateHistoryButtons();
   }
 
   function undoAction() {
     if (actionHistory.length === 0) return;
     redoHistory.push(actionHistory.pop());
     redrawActions();
+    updateHistoryButtons();
   }
 
   function redoAction() {
     if (redoHistory.length === 0) return;
     actionHistory.push(redoHistory.pop());
     redrawActions();
+    updateHistoryButtons();
   }
 
   function redrawActions() {
@@ -596,6 +604,7 @@
       actionHistory.length = 0;
       redoHistory.length = 0;
       drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+      updateHistoryButtons();
     });
 
     btnUndo.addEventListener("click", undoAction);
@@ -645,6 +654,7 @@
     requestAnimationFrame(() => {
       updateLayout();
       updateImageEditUI();
+      updateHistoryButtons();
     });
   }
 

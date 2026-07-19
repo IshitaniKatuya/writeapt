@@ -228,10 +228,31 @@ body {
   box-shadow: 0 3px 0 #6eb5e8;
 }
 
+.dock__row--history {
+  background: #f9f4ef;
+  border-radius: 12px;
+  padding: 0.3rem;
+  margin-bottom: 0.35rem;
+}
+
+.dock__row--history .big-btn {
+  min-height: 58px;
+  background: #fff;
+}
+
+.dock__row--history .big-btn__label {
+  font-size: 0.72rem;
+}
+
 .big-btn--sub {
   flex: 1;
   min-height: 54px;
   background: #f9f4ef;
+}
+
+.big-btn--sub.big-btn--disabled {
+  opacity: 0.35;
+  pointer-events: none;
 }
 
 .big-btn--wide {
