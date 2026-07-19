@@ -2,16 +2,16 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>なぞり・ぬりえ</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
   <div class="app">
-    <main class="stage">
+    <main class="stage" id="stage">
       <div class="canvas-wrapper canvas-wrapper--guide-back" id="canvas-wrapper">
         <canvas id="guide-canvas" aria-hidden="true"></canvas>
         <canvas id="draw-canvas" aria-label="おえかき"></canvas>
@@ -27,7 +27,7 @@
       </div>
     </main>
 
-    <nav class="dock" aria-label="どうぐ">
+    <nav class="dock" id="dock" aria-label="どうぐ">
       <div class="dock__row">
         <button type="button" id="tool-pen" class="big-btn big-btn--tool big-btn--active" data-tool="pen" aria-pressed="true">
           <span class="big-btn__icon">✏️</span>
@@ -66,9 +66,12 @@
           <span class="big-btn__icon">🧹</span>
           <span class="big-btn__label">おえかけす</span>
         </button>
-        <button type="button" id="btn-remove-image" class="big-btn big-btn--sub big-btn--danger hidden">
-          <span class="big-btn__icon">📷</span>
-          <span class="big-btn__label">しゃしんけす</span>
+      </div>
+
+      <div id="image-actions-row" class="dock__row hidden">
+        <button type="button" id="btn-remove-image" class="big-btn big-btn--sub big-btn--danger big-btn--wide">
+          <span class="big-btn__icon">🖼️</span>
+          <span class="big-btn__label">しゃしんだけけす</span>
         </button>
       </div>
     </nav>
@@ -92,6 +95,6 @@
     </details>
   </div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>
