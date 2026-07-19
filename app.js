@@ -1,6 +1,6 @@
 (function () {
   const KID_COLORS = [
-    "#e53935", "#fb8c00", "#fdd835",
+    "#2c2a26", "#e53935", "#fb8c00", "#fdd835",
     "#43a047", "#1e88e5", "#8e24aa",
   ];
 
