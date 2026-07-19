@@ -18,8 +18,17 @@
     more: "さわる",
   };
 
+  const FONT_SIZE_MIN = 36;
+  const FONT_SIZE_MAX = 160;
+  const FONT_SIZE_STEP = 8;
+
   const practiceText = document.getElementById("practice-text");
   const fontSizeInput = document.getElementById("font-size");
+  const fontSizeRange = document.getElementById("font-size-range");
+  const fontSizeLabel = document.getElementById("font-size-label");
+  const fontSizeRow = document.getElementById("font-size-row");
+  const btnFontBigger = document.getElementById("btn-font-bigger");
+  const btnFontSmaller = document.getElementById("btn-font-smaller");
   const lineHeightInput = document.getElementById("line-height");
   const strokeWidthInput = document.getElementById("stroke-width");
   const guideOpacityInput = document.getElementById("guide-opacity");
@@ -91,6 +100,24 @@
     brush: "🖌️",
   };
 
+  function syncFontSizeUI(size) {
+    const clamped = Math.max(FONT_SIZE_MIN, Math.min(FONT_SIZE_MAX, size));
+    fontSizeInput.value = String(clamped);
+    if (fontSizeRange) fontSizeRange.value = String(clamped);
+    if (fontSizeLabel) fontSizeLabel.textContent = String(clamped);
+  }
+
+  function changeFontSize(delta) {
+    syncFontSizeUI(Number(fontSizeInput.value) + delta);
+    if (!isImageMode()) drawGuide();
+  }
+
+  function updateGuideSubmenuUI() {
+    if (fontSizeRow) {
+      fontSizeRow.classList.toggle("hidden", isImageMode());
+    }
+  }
+
   function getSettings() {
     return {
       text: practiceText.value,
@@ -133,6 +160,7 @@
     imageActionsRow.classList.toggle("hidden", !hasImage);
     canvasWrapper.classList.toggle("canvas-wrapper--image-edit", editing);
     btnReeditImage.classList.toggle("hidden", !hasImage || editing);
+    updateGuideSubmenuUI();
     updateLayout();
   }
 
@@ -193,6 +221,7 @@
     submenuPanels.forEach((panel) => {
       panel.classList.toggle("hidden", panel.dataset.submenuPanel !== name);
     });
+    if (name === "guide") updateGuideSubmenuUI();
   }
 
   function backToMainMenu() {
@@ -748,6 +777,22 @@
     btnImageBigger.addEventListener("click", () => changeImageScale(0.15));
     btnImageSmaller.addEventListener("click", () => changeImageScale(-0.15));
 
+    btnFontBigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      changeFontSize(FONT_SIZE_STEP);
+    });
+    btnFontSmaller.addEventListener("click", (e) => {
+      e.stopPropagation();
+      changeFontSize(-FONT_SIZE_STEP);
+    });
+
+    if (fontSizeRange) {
+      fontSizeRange.addEventListener("input", () => {
+        syncFontSizeUI(Number(fontSizeRange.value));
+        if (!isImageMode()) drawGuide();
+      });
+    }
+
     imageInput.addEventListener("change", (e) => {
       const file = e.target.files?.[0];
       if (file) loadImage(file);
@@ -780,6 +825,7 @@
 
   function init() {
     buildPalette();
+    syncFontSizeUI(Number(fontSizeInput.value));
     setBrush("pen");
     setGuideLayer("back");
     updateFabStatus();
