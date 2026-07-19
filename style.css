@@ -15,19 +15,24 @@
   --accent-dark: #e86f30;
   --ok: #5cb85c;
   --ok-dark: #449d44;
+  --danger: #e57373;
+  --danger-dark: #c62828;
   --font: "Noto Sans JP", "Hiragino Sans", sans-serif;
+  --dock-height: auto;
 }
 
 html {
   -webkit-text-size-adjust: 100%;
+  height: 100%;
 }
 
 body {
   font-family: var(--font);
   background: var(--bg);
   color: var(--text);
+  height: 100%;
   min-height: 100dvh;
-  overflow: hidden;
+  min-height: 100svh;
 }
 
 .hidden {
@@ -35,23 +40,27 @@ body {
 }
 
 .app {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: 1fr auto;
   height: 100dvh;
+  height: 100svh;
   max-width: 900px;
   margin: 0 auto;
+  overflow: hidden;
 }
 
 .stage {
-  flex: 1;
   min-height: 0;
-  padding: 0.5rem 0.5rem 0;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
 }
 
 .canvas-wrapper {
   position: relative;
+  flex: 1;
   width: 100%;
-  height: 100%;
+  min-height: 160px;
   background: #fff;
   border: 4px solid var(--border);
   border-radius: 20px;
@@ -65,6 +74,7 @@ body {
   inset: 0;
   width: 100%;
   height: 100%;
+  display: block;
 }
 
 #guide-canvas {
@@ -89,12 +99,12 @@ body {
   bottom: 0;
   z-index: 20;
   padding: 0.75rem;
-  background: linear-gradient(transparent, rgba(255, 255, 255, 0.95));
+  background: linear-gradient(transparent, rgba(255, 255, 255, 0.97));
   text-align: center;
 }
 
 .edit-bar__msg {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--accent-dark);
   margin-bottom: 0.5rem;
@@ -104,20 +114,22 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
 }
 
 .dock {
-  flex-shrink: 0;
   background: var(--dock);
   border-top: 4px solid var(--border);
-  padding: 0.6rem 0.5rem calc(0.6rem + env(safe-area-inset-bottom));
+  padding: 0.5rem 0.5rem calc(0.5rem + env(safe-area-inset-bottom));
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: 48vh;
 }
 
 .dock__row {
   display: flex;
-  gap: 0.45rem;
-  margin-bottom: 0.5rem;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
 }
 
 .dock__row:last-child {
@@ -128,9 +140,9 @@ body {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 0.55rem;
-  padding: 0.35rem 0;
+  gap: 0.45rem;
+  margin-bottom: 0.45rem;
+  padding: 0.2rem 0;
 }
 
 .big-btn {
@@ -138,14 +150,16 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.1rem;
+  gap: 0.05rem;
   border: 3px solid var(--border);
-  border-radius: 16px;
+  border-radius: 14px;
   background: #fff;
   font-family: var(--font);
   cursor: pointer;
-  transition: transform 0.1s, background 0.15s;
+  transition: transform 0.1s;
   -webkit-tap-highlight-color: transparent;
+  padding: 0.25rem;
+  min-width: 0;
 }
 
 .big-btn:active {
@@ -153,20 +167,23 @@ body {
 }
 
 .big-btn__icon {
-  font-size: 1.6rem;
-  line-height: 1;
+  font-size: 1.4rem;
+  line-height: 1.1;
 }
 
 .big-btn__label {
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 700;
   color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .big-btn--tool {
   flex: 1;
-  min-height: 72px;
-  padding: 0.35rem 0.25rem;
+  min-height: 64px;
 }
 
 .big-btn--tool.big-btn--active {
@@ -177,13 +194,12 @@ body {
 
 .big-btn--photo {
   flex: 1;
-  min-height: 72px;
+  min-height: 64px;
 }
 
 .big-btn--mode {
   flex: 1;
-  min-height: 64px;
-  padding: 0.3rem;
+  min-height: 56px;
 }
 
 .big-btn--mode.big-btn--active {
@@ -194,25 +210,32 @@ body {
 
 .big-btn--sub {
   flex: 1;
-  min-height: 64px;
-  padding: 0.3rem;
+  min-height: 56px;
   background: #f9f4ef;
 }
 
+.big-btn--danger {
+  background: #fff5f5;
+  border-color: var(--danger);
+}
+
+.big-btn--danger .big-btn__label {
+  color: var(--danger-dark);
+}
+
 .big-btn--round {
-  width: 56px;
-  height: 56px;
-  font-size: 1.8rem;
+  width: 52px;
+  height: 52px;
+  font-size: 1.6rem;
   font-weight: 700;
-  color: var(--text);
   flex-shrink: 0;
 }
 
 .big-btn--ok {
   flex: 1;
-  max-width: 180px;
-  height: 56px;
-  font-size: 1.2rem;
+  max-width: 160px;
+  height: 52px;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #fff;
   background: var(--ok);
@@ -221,13 +244,13 @@ body {
 }
 
 .palette__color {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border: 3px solid #fff;
   border-radius: 50%;
   cursor: pointer;
   box-shadow: 0 0 0 2px var(--border);
-  transition: transform 0.1s;
+  flex-shrink: 0;
 }
 
 .palette__color:active {
@@ -236,30 +259,26 @@ body {
 
 .palette__color--active {
   box-shadow: 0 0 0 3px var(--accent), 0 0 0 5px #fff;
-  transform: scale(1.08);
-}
-
-.palette__color--light {
-  background: #fff !important;
+  transform: scale(1.06);
 }
 
 .grownup {
   position: fixed;
-  top: 0.5rem;
-  right: 0.5rem;
+  top: 0.4rem;
+  left: 0.4rem;
   z-index: 100;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
 }
 
 .grownup summary {
-  padding: 0.35rem 0.6rem;
-  background: rgba(255, 255, 255, 0.9);
+  padding: 0.3rem 0.55rem;
+  background: rgba(255, 255, 255, 0.92);
   border: 1px solid var(--border);
   border-radius: 8px;
   cursor: pointer;
   list-style: none;
   color: var(--text);
-  opacity: 0.7;
+  opacity: 0.65;
 }
 
 .grownup summary::-webkit-details-marker {
@@ -267,20 +286,20 @@ body {
 }
 
 .grownup__body {
-  margin-top: 0.35rem;
-  padding: 0.75rem;
+  margin-top: 0.3rem;
+  padding: 0.65rem;
   background: #fff;
   border: 1px solid var(--border);
   border-radius: 12px;
-  width: 220px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  width: 200px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
 .grownup__field {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  margin-bottom: 0.5rem;
+  gap: 0.25rem;
+  margin-bottom: 0.4rem;
 }
 
 .grownup__field textarea {
@@ -295,18 +314,25 @@ body {
 .grownup__btn {
   display: block;
   width: 100%;
-  margin-top: 0.35rem;
+  margin-top: 0.3rem;
   padding: 0.4rem;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: #f9f4ef;
   font-family: var(--font);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   cursor: pointer;
 }
 
-@media (min-width: 600px) {
-  .big-btn__icon { font-size: 1.8rem; }
-  .big-btn__label { font-size: 0.75rem; }
+@media (min-width: 480px) {
+  .big-btn__icon { font-size: 1.55rem; }
+  .big-btn__label { font-size: 0.68rem; }
+  .big-btn--tool { min-height: 70px; }
+  .palette__color { width: 44px; height: 44px; }
+  .canvas-wrapper { min-height: 220px; }
+}
+
+@media (min-width: 700px) {
+  .dock { max-height: 42vh; }
   .palette__color { width: 48px; height: 48px; }
 }
