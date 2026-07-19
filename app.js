@@ -89,7 +89,7 @@
 
     imageEditBar.classList.toggle("hidden", !editing);
     canvasWrapper.classList.toggle("canvas-wrapper--image-edit", editing);
-    btnRemoveImage.classList.toggle("hidden", !hasImage);
+    btnRemoveImage.classList.toggle("hidden", !(hasImage && imageTransform.locked));
     btnReeditImage.classList.toggle("hidden", !hasImage || editing);
   }
 
@@ -482,6 +482,7 @@
     guideImage = null;
     imageInput.value = "";
     resetImageTransform();
+    isDraggingImage = false;
     canvasWrapper.classList.remove("canvas-wrapper--dragging", "canvas-wrapper--image-edit");
     drawGuide();
     updateImageEditUI();
@@ -531,14 +532,21 @@
     drawCanvas.addEventListener("touchcancel", stopDrawing);
 
     window.addEventListener("resize", resizeCanvases);
+
+    if (typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(() => resizeCanvases());
+      observer.observe(canvasWrapper);
+    }
   }
 
   function init() {
     buildPalette();
     setGuideLayer("back");
     bindEvents();
-    resizeCanvases();
-    updateImageEditUI();
+    requestAnimationFrame(() => {
+      resizeCanvases();
+      updateImageEditUI();
+    });
   }
 
   init();
