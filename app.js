@@ -9,13 +9,13 @@
   const lineHeightInput = document.getElementById("line-height");
   const strokeWidthInput = document.getElementById("stroke-width");
   const guideOpacityInput = document.getElementById("guide-opacity");
+  const guideVisibleInput = document.getElementById("guide-visible");
   const fontSizeValue = document.getElementById("font-size-value");
   const lineHeightValue = document.getElementById("line-height-value");
   const strokeWidthValue = document.getElementById("stroke-width-value");
   const guideOpacityValue = document.getElementById("guide-opacity-value");
   const btnClear = document.getElementById("btn-clear");
   const btnUndo = document.getElementById("btn-undo");
-  const btnUpdate = document.getElementById("btn-update");
   const btnRemoveImage = document.getElementById("btn-remove-image");
   const imageInput = document.getElementById("image-input");
   const canvasWrapper = document.getElementById("canvas-wrapper");
@@ -27,8 +27,11 @@
   const textGuidePanel = document.getElementById("text-guide-panel");
   const imageGuidePanel = document.getElementById("image-guide-panel");
   const canvasHint = document.getElementById("canvas-hint");
+  const toolBadge = document.getElementById("tool-badge");
+  const guideBadge = document.getElementById("guide-badge");
   const toolButtons = document.querySelectorAll("[data-tool]");
   const guideButtons = document.querySelectorAll("[data-guide]");
+  const layerButtons = document.querySelectorAll("[data-layer]");
 
   const guideCtx = guideCanvas.getContext("2d");
   const drawCtx = drawCanvas.getContext("2d");
@@ -41,6 +44,9 @@
   let currentGuide = "text";
   let currentColor = PRESET_COLORS[0];
   let guideImage = null;
+  let guideLayer = "back";
+  let guideVisible = true;
+  let textUpdateTimer = null;
 
   function getSettings() {
     return {
@@ -59,25 +65,77 @@
     guideOpacityValue.textContent = `${Math.round(Number(guideOpacityInput.value) * 100)}%`;
   }
 
+  function updateBadges() {
+    toolBadge.textContent = currentTool === "fill" ? "塗り" : "ペン";
+
+    if (!guideVisible) {
+      guideBadge.textContent = "手本：非表示";
+      return;
+    }
+
+    const mode = currentGuide === "image" ? "画像" : "テキスト";
+    const layer = guideLayer === "front" ? "前面" : "背面";
+    guideBadge.textContent = `手本：${mode}・${layer}`;
+  }
+
   function setTool(tool) {
     currentTool = tool;
     toolButtons.forEach((btn) => {
       const active = btn.dataset.tool === tool;
-      btn.classList.toggle("tool-btn--active", active);
+      btn.classList.toggle("seg-control__btn--active", active);
       btn.setAttribute("aria-pressed", String(active));
     });
-    drawCanvas.style.cursor = tool === "fill" ? "cell" : "crosshair";
+    drawCanvas.classList.toggle("cursor-fill", tool === "fill");
     canvasHint.textContent =
       tool === "fill"
-        ? "塗りたい場所をタップ／クリックしてください"
-        : "マウス・指・ペンでなぞってください";
+        ? "塗りたい場所をタップ／クリック"
+        : "マウス・指でなぞってください";
+    updateBadges();
+  }
+
+  function setGuideLayer(layer) {
+    guideLayer = layer;
+    layerButtons.forEach((btn) => {
+      const active = btn.dataset.layer === layer;
+      btn.classList.toggle("seg-control__btn--active", active);
+      btn.setAttribute("aria-pressed", String(active));
+    });
+    canvasWrapper.classList.toggle("canvas-wrapper--guide-front", layer === "front");
+    canvasWrapper.classList.toggle("canvas-wrapper--guide-back", layer === "back");
+    updateBadges();
+  }
+
+  function setGuideVisible(visible) {
+    guideVisible = visible;
+    guideVisibleInput.checked = visible;
+    canvasWrapper.classList.toggle("canvas-wrapper--guide-hidden", !visible);
+    document.getElementById("guide-layer-row").classList.toggle("hidden", !visible);
+    drawGuide();
+    updateBadges();
   }
 
   function setGuideMode(mode) {
+    if (mode === "image" && !guideImage) {
+      imageGuidePanel.classList.remove("hidden");
+      textGuidePanel.classList.add("hidden");
+      currentGuide = "image";
+      guideButtons.forEach((btn) => {
+        const active = btn.dataset.guide === "image";
+        btn.classList.toggle("seg-control__btn--active", active);
+        btn.setAttribute("aria-pressed", String(active));
+      });
+      document.querySelectorAll(".control--text-only").forEach((el) => {
+        el.classList.add("hidden");
+      });
+      drawGuide();
+      updateBadges();
+      return;
+    }
+
     currentGuide = mode;
     guideButtons.forEach((btn) => {
       const active = btn.dataset.guide === mode;
-      btn.classList.toggle("tool-btn--active", active);
+      btn.classList.toggle("seg-control__btn--active", active);
       btn.setAttribute("aria-pressed", String(active));
     });
     textGuidePanel.classList.toggle("hidden", mode !== "text");
@@ -85,8 +143,8 @@
     document.querySelectorAll(".control--text-only").forEach((el) => {
       el.classList.toggle("hidden", mode !== "text");
     });
-    btnUpdate.classList.toggle("hidden", mode !== "text");
     drawGuide();
+    updateBadges();
   }
 
   function setColor(color) {
@@ -133,10 +191,12 @@
   }
 
   function drawGuideText() {
-    const { text, fontSize, lineHeight, guideOpacity } = getSettings();
     guideCtx.setTransform(1, 0, 0, 1, 0, 0);
     guideCtx.clearRect(0, 0, guideCanvas.width, guideCanvas.height);
 
+    if (!guideVisible) return;
+
+    const { text, fontSize, lineHeight, guideOpacity } = getSettings();
     if (!text.trim()) return;
 
     const scaledFontSize = fontSize * dpr;
@@ -145,7 +205,7 @@
     const centerX = guideCanvas.width / 2;
 
     guideCtx.font = `${scaledFontSize}px "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif`;
-    guideCtx.fillStyle = `rgba(120, 116, 108, ${guideOpacity})`;
+    guideCtx.fillStyle = `rgba(100, 96, 90, ${guideOpacity})`;
     guideCtx.textAlign = "center";
     guideCtx.textBaseline = "top";
 
@@ -155,9 +215,7 @@
 
     for (const line of lines) {
       if (y + scaledFontSize > guideCanvas.height - padding) break;
-      if (line.trim() !== "") {
-        guideCtx.fillText(line, centerX, y);
-      }
+      guideCtx.fillText(line, centerX, y);
       y += lineGap;
     }
   }
@@ -176,15 +234,16 @@
   function drawGuideImage() {
     guideCtx.setTransform(1, 0, 0, 1, 0, 0);
     guideCtx.clearRect(0, 0, guideCanvas.width, guideCanvas.height);
-    if (!guideImage) return;
+
+    if (!guideVisible || !guideImage) return;
 
     const { guideOpacity } = getSettings();
     const padding = 16 * dpr;
     const maxW = guideCanvas.width - padding * 2;
     const maxH = guideCanvas.height - padding * 2;
-    const scale = Math.min(maxW / guideImage.width, maxH / guideImage.height, 1);
-    const drawW = guideImage.width * scale;
-    const drawH = guideImage.height * scale;
+    const scale = Math.min(maxW / guideImage.width, maxH / guideImage.height);
+    const drawW = Math.max(1, Math.floor(guideImage.width * scale));
+    const drawH = Math.max(1, Math.floor(guideImage.height * scale));
     const x = (guideCanvas.width - drawW) / 2;
     const y = (guideCanvas.height - drawH) / 2;
 
@@ -193,8 +252,13 @@
     temp.height = drawH;
     const tempCtx = temp.getContext("2d");
     tempCtx.drawImage(guideImage, 0, 0, drawW, drawH);
-    const imageData = toGrayscaleImageData(tempCtx.getImageData(0, 0, drawW, drawH));
-    tempCtx.putImageData(imageData, 0, 0);
+
+    try {
+      const imageData = toGrayscaleImageData(tempCtx.getImageData(0, 0, drawW, drawH));
+      tempCtx.putImageData(imageData, 0, 0);
+    } catch {
+      // CORS等でgetImageDataが失敗した場合はそのまま描画
+    }
 
     guideCtx.globalAlpha = guideOpacity;
     guideCtx.drawImage(temp, x, y);
@@ -207,6 +271,13 @@
     } else {
       drawGuideText();
     }
+  }
+
+  function scheduleTextGuideUpdate() {
+    clearTimeout(textUpdateTimer);
+    textUpdateTimer = setTimeout(() => {
+      if (currentGuide === "text") drawGuide();
+    }, 120);
   }
 
   function drawStroke(stroke) {
@@ -333,9 +404,7 @@
 
     if (currentTool === "fill") {
       const fillAction = floodFill(point.x, point.y, currentColor);
-      if (fillAction) {
-        actionHistory.push(fillAction);
-      }
+      if (fillAction) actionHistory.push(fillAction);
       return;
     }
 
@@ -395,7 +464,6 @@
         guideImage = img;
         btnRemoveImage.classList.remove("hidden");
         setGuideMode("image");
-        drawGuide();
       };
       img.src = reader.result;
     };
@@ -406,7 +474,8 @@
     guideImage = null;
     imageInput.value = "";
     btnRemoveImage.classList.add("hidden");
-    drawGuide();
+    if (currentGuide === "image") setGuideMode("text");
+    else drawGuide();
   }
 
   function bindEvents() {
@@ -418,12 +487,25 @@
       btn.addEventListener("click", () => setGuideMode(btn.dataset.guide));
     });
 
+    layerButtons.forEach((btn) => {
+      btn.addEventListener("click", () => setGuideLayer(btn.dataset.layer));
+    });
+
+    guideVisibleInput.addEventListener("change", (event) => {
+      setGuideVisible(event.target.checked);
+    });
+
     customColorInput.addEventListener("input", (event) => {
       setColor(event.target.value);
     });
 
     document.querySelector(".color-custom").addEventListener("click", () => {
       customColorInput.click();
+    });
+
+    practiceText.addEventListener("input", () => {
+      updateLabels();
+      scheduleTextGuideUpdate();
     });
 
     [fontSizeInput, lineHeightInput, guideOpacityInput].forEach((input) => {
@@ -435,7 +517,6 @@
 
     strokeWidthInput.addEventListener("input", updateLabels);
 
-    btnUpdate.addEventListener("click", drawGuide);
     btnClear.addEventListener("click", clearDrawing);
     btnUndo.addEventListener("click", undoAction);
     btnRemoveImage.addEventListener("click", removeImage);
@@ -443,12 +524,6 @@
     imageInput.addEventListener("change", (event) => {
       const file = event.target.files?.[0];
       if (file) loadImage(file);
-    });
-
-    practiceText.addEventListener("keydown", (event) => {
-      if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
-        drawGuide();
-      }
     });
 
     drawCanvas.addEventListener("mousedown", startDrawing);
@@ -467,8 +542,11 @@
   function init() {
     buildPalette();
     updateLabels();
+    setGuideLayer("back");
+    setGuideVisible(true);
     bindEvents();
     resizeCanvases();
+    updateBadges();
   }
 
   init();
