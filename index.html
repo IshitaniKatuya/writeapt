@@ -3,181 +3,87 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>なぞり書き練習 — WriteApt</title>
+  <title>なぞり・ぬりえ</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="app">
-    <header class="header">
-      <h1 class="header__title">なぞり書き練習</h1>
-      <p class="header__subtitle">手本の上をなぞったり、色を塗って練習</p>
-    </header>
+    <main class="stage">
+      <div class="canvas-wrapper canvas-wrapper--guide-back" id="canvas-wrapper">
+        <canvas id="guide-canvas" aria-hidden="true"></canvas>
+        <canvas id="draw-canvas" aria-label="おえかき"></canvas>
 
-    <main class="workspace">
-      <aside class="sidebar" aria-label="設定パネル">
-        <section class="card">
-          <h2 class="card__title">ツール</h2>
-          <div class="seg-control" role="group" aria-label="描画ツール">
-            <button type="button" id="tool-pen" class="seg-control__btn seg-control__btn--active" data-tool="pen" aria-pressed="true">
-              <span class="seg-control__icon">✏️</span>ペン
-            </button>
-            <button type="button" id="tool-fill" class="seg-control__btn" data-tool="fill" aria-pressed="false">
-              <span class="seg-control__icon">🪣</span>塗り
-            </button>
+        <div id="image-edit-bar" class="edit-bar hidden">
+          <p class="edit-bar__msg">うごかしてね</p>
+          <div class="edit-bar__btns">
+            <button type="button" id="btn-image-smaller" class="big-btn big-btn--round" aria-label="ちいさく">−</button>
+            <button type="button" id="btn-image-bigger" class="big-btn big-btn--round" aria-label="おおきく">＋</button>
+            <button type="button" id="btn-confirm-image" class="big-btn big-btn--ok">できた！</button>
           </div>
-        </section>
-
-        <section class="card">
-          <h2 class="card__title">色</h2>
-          <div class="palette" id="color-palette" role="group" aria-label="カラーパレット"></div>
-          <label class="color-custom">
-            <span class="color-custom__swatch" id="custom-color-swatch"></span>
-            <input type="color" id="custom-color" value="#2c2a26" aria-label="カスタム色">
-            <span>カスタム</span>
-          </label>
-        </section>
-
-        <section class="card">
-          <h2 class="card__title">手本</h2>
-
-          <div class="toggle-row">
-            <span class="toggle-row__label">手本を表示</span>
-            <label class="switch">
-              <input type="checkbox" id="guide-visible" checked>
-              <span class="switch__track"></span>
-            </label>
-          </div>
-
-          <div class="toggle-row" id="guide-layer-row">
-            <span class="toggle-row__label">手本の位置</span>
-            <div class="seg-control seg-control--compact" role="group" aria-label="手本の重なり順">
-              <button type="button" id="guide-layer-back" class="seg-control__btn seg-control__btn--active" data-layer="back" aria-pressed="true">背面</button>
-              <button type="button" id="guide-layer-front" class="seg-control__btn" data-layer="front" aria-pressed="false">前面</button>
-            </div>
-          </div>
-
-          <div class="seg-control seg-control--full" role="group" aria-label="手本の種類">
-            <button type="button" id="guide-text" class="seg-control__btn seg-control__btn--active" data-guide="text" aria-pressed="true">テキスト</button>
-            <button type="button" id="guide-image" class="seg-control__btn" data-guide="image" aria-pressed="false">画像</button>
-          </div>
-
-          <div id="text-guide-panel" class="guide-panel">
-            <label class="field">
-              <span class="field__label">練習テキスト</span>
-              <textarea
-                id="practice-text"
-                class="field__textarea"
-                rows="3"
-                placeholder="練習したい文字を入力"
-              >あいうえお
-かきくけこ
-さしすせそ</textarea>
-            </label>
-          </div>
-
-          <div id="image-guide-panel" class="guide-panel hidden">
-            <div class="image-upload">
-              <label class="btn btn--ghost image-upload__btn">
-                📷 画像を選ぶ
-                <input type="file" id="image-input" accept="image/*" hidden>
-              </label>
-              <button type="button" id="btn-remove-image" class="btn btn--ghost hidden">削除</button>
-            </div>
-
-            <div id="image-edit-controls" class="image-edit hidden">
-              <p class="field__hint image-edit__hint">ドラッグまたはスライダーで調整</p>
-
-              <label class="slider">
-                <span class="slider__head">
-                  <span class="slider__label">大きさ</span>
-                  <span id="image-scale-value" class="slider__value">100%</span>
-                </span>
-                <input type="range" id="image-scale" min="20" max="300" value="100">
-              </label>
-
-              <label class="slider">
-                <span class="slider__head">
-                  <span class="slider__label">横位置</span>
-                  <span id="image-pos-x-value" class="slider__value">0</span>
-                </span>
-                <input type="range" id="image-pos-x" min="-100" max="100" value="0">
-              </label>
-
-              <label class="slider">
-                <span class="slider__head">
-                  <span class="slider__label">縦位置</span>
-                  <span id="image-pos-y-value" class="slider__value">0</span>
-                </span>
-                <input type="range" id="image-pos-y" min="-100" max="100" value="0">
-              </label>
-
-              <button type="button" id="btn-confirm-image" class="btn btn--primary btn--full">✓ 確定</button>
-            </div>
-
-            <div id="image-locked-controls" class="image-locked hidden">
-              <p class="field__hint">配置を確定済み — なぞって練習できます</p>
-              <button type="button" id="btn-reedit-image" class="btn btn--ghost btn--full">再調整</button>
-            </div>
-          </div>
-
-          <div class="sliders">
-            <label class="slider control--text-only">
-              <span class="slider__head">
-                <span class="slider__label">文字サイズ</span>
-                <span id="font-size-value" class="slider__value">64px</span>
-              </span>
-              <input type="range" id="font-size" min="24" max="120" value="64">
-            </label>
-
-            <label class="slider control--text-only">
-              <span class="slider__head">
-                <span class="slider__label">行間</span>
-                <span id="line-height-value" class="slider__value">1.8</span>
-              </span>
-              <input type="range" id="line-height" min="1.2" max="3" step="0.1" value="1.8">
-            </label>
-
-            <label class="slider">
-              <span class="slider__head">
-                <span class="slider__label">手本の濃さ</span>
-                <span id="guide-opacity-value" class="slider__value">25%</span>
-              </span>
-              <input type="range" id="guide-opacity" min="0.05" max="0.8" step="0.05" value="0.25">
-            </label>
-
-            <label class="slider">
-              <span class="slider__head">
-                <span class="slider__label">ペンの太さ</span>
-                <span id="stroke-width-value" class="slider__value">3px</span>
-              </span>
-              <input type="range" id="stroke-width" min="1" max="24" value="3">
-            </label>
-          </div>
-        </section>
-
-        <section class="card card--actions">
-          <button type="button" id="btn-undo" class="btn btn--ghost">↩ 戻す</button>
-          <button type="button" id="btn-clear" class="btn btn--ghost">🗑 消す</button>
-        </section>
-      </aside>
-
-      <section class="stage" aria-label="練習エリア">
-        <div class="stage__toolbar">
-          <span class="stage__badge" id="tool-badge">ペン</span>
-          <span class="stage__badge stage__badge--muted" id="guide-badge">手本：背面</span>
         </div>
-
-        <div class="canvas-wrapper canvas-wrapper--guide-back" id="canvas-wrapper">
-          <canvas id="guide-canvas" aria-hidden="true"></canvas>
-          <canvas id="draw-canvas" aria-label="なぞり書きキャンバス"></canvas>
-        </div>
-
-        <p class="stage__hint" id="canvas-hint">マウス・指でなぞってください</p>
-      </section>
+      </div>
     </main>
+
+    <nav class="dock" aria-label="どうぐ">
+      <div class="dock__row">
+        <button type="button" id="tool-pen" class="big-btn big-btn--tool big-btn--active" data-tool="pen" aria-pressed="true">
+          <span class="big-btn__icon">✏️</span>
+          <span class="big-btn__label">えんぴつ</span>
+        </button>
+        <button type="button" id="tool-fill" class="big-btn big-btn--tool" data-tool="fill" aria-pressed="false">
+          <span class="big-btn__icon">🪣</span>
+          <span class="big-btn__label">ぬる</span>
+        </button>
+        <label class="big-btn big-btn--tool big-btn--photo">
+          <span class="big-btn__icon">📷</span>
+          <span class="big-btn__label">しゃしん</span>
+          <input type="file" id="image-input" accept="image/*" hidden>
+        </label>
+      </div>
+
+      <div class="dock__colors" id="color-palette" role="group" aria-label="いろ"></div>
+
+      <div class="dock__row">
+        <button type="button" id="guide-layer-back" class="big-btn big-btn--mode big-btn--active" data-layer="back" aria-pressed="true">
+          <span class="big-btn__icon">👻</span>
+          <span class="big-btn__label">なぞる</span>
+        </button>
+        <button type="button" id="guide-layer-front" class="big-btn big-btn--mode" data-layer="front" aria-pressed="false">
+          <span class="big-btn__icon">🎨</span>
+          <span class="big-btn__label">ぬりえ</span>
+        </button>
+        <button type="button" id="btn-undo" class="big-btn big-btn--sub">
+          <span class="big-btn__icon">↩️</span>
+          <span class="big-btn__label">もどす</span>
+        </button>
+        <button type="button" id="btn-clear" class="big-btn big-btn--sub">
+          <span class="big-btn__icon">🗑️</span>
+          <span class="big-btn__label">けす</span>
+        </button>
+      </div>
+    </nav>
+
+    <details class="grownup">
+      <summary>おとな用</summary>
+      <div class="grownup__body">
+        <label class="grownup__field">
+          <span>もじ</span>
+          <textarea id="practice-text" rows="2">あいうえお</textarea>
+        </label>
+        <input type="hidden" id="font-size" value="64">
+        <input type="hidden" id="line-height" value="1.8">
+        <input type="hidden" id="stroke-width" value="8">
+        <input type="hidden" id="guide-opacity" value="0.3">
+        <input type="hidden" id="image-scale" value="100">
+        <input type="hidden" id="image-pos-x" value="0">
+        <input type="hidden" id="image-pos-y" value="0">
+        <button type="button" id="btn-reedit-image" class="grownup__btn hidden">しゃしんをなおす</button>
+        <button type="button" id="btn-remove-image" class="grownup__btn hidden">しゃしんをけす</button>
+      </div>
+    </details>
   </div>
 
   <script src="app.js"></script>
