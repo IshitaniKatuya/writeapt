@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=10">
+  <link rel="stylesheet" href="style.css?v=11">
 </head>
 <body>
   <div class="app">
@@ -26,122 +26,6 @@
         </div>
       </div>
     </main>
-
-    <div class="menu-system" id="menu-system">
-      <div class="menu-backdrop hidden" id="menu-backdrop" aria-hidden="true"></div>
-
-      <div class="menu-panel menu-panel--main hidden" id="menu-main" role="dialog" aria-label="どうぐメニュー">
-        <p class="menu-panel__heading">なにをする？</p>
-        <div class="menu-grid">
-          <button type="button" class="menu-item" data-submenu="pen">
-            <span class="menu-item__icon">✏️</span>
-            <span class="menu-item__label">えんぴつ</span>
-          </button>
-          <button type="button" class="menu-item" data-action="fill">
-            <span class="menu-item__icon">🪣</span>
-            <span class="menu-item__label">ぬる</span>
-          </button>
-          <button type="button" class="menu-item" data-submenu="color">
-            <span class="menu-item__icon">🎨</span>
-            <span class="menu-item__label">いろ</span>
-          </button>
-          <button type="button" class="menu-item" data-action="photo">
-            <span class="menu-item__icon">📷</span>
-            <span class="menu-item__label">しゃしん</span>
-          </button>
-          <button type="button" class="menu-item" data-submenu="guide">
-            <span class="menu-item__icon">📖</span>
-            <span class="menu-item__label">てびき</span>
-          </button>
-          <button type="button" class="menu-item" data-submenu="more">
-            <span class="menu-item__icon">🔧</span>
-            <span class="menu-item__label">さわる</span>
-          </button>
-        </div>
-      </div>
-
-      <div class="menu-panel menu-panel--sub hidden" id="menu-sub" role="dialog" aria-label="くわしくえらぶ">
-        <button type="button" class="menu-panel__back" id="menu-sub-back" aria-label="もどる">← もどる</button>
-        <p class="menu-panel__heading" id="menu-sub-title"></p>
-
-        <div class="menu-sub-content hidden" id="sub-pen" data-submenu-panel="pen">
-          <div class="dock__row dock__brushes" id="brush-row">
-            <button type="button" class="big-btn big-btn--brush big-btn--active" data-brush="pen" aria-pressed="true">
-              <span class="big-btn__icon">✏️</span>
-              <span class="big-btn__label">えんぴつ</span>
-            </button>
-            <button type="button" class="big-btn big-btn--brush" data-brush="marker" aria-pressed="false">
-              <span class="big-btn__icon">🖊️</span>
-              <span class="big-btn__label">マーカー</span>
-            </button>
-            <button type="button" class="big-btn big-btn--brush" data-brush="crayon" aria-pressed="false">
-              <span class="big-btn__icon">🖍️</span>
-              <span class="big-btn__label">クレヨン</span>
-            </button>
-            <button type="button" class="big-btn big-btn--brush" data-brush="brush" aria-pressed="false">
-              <span class="big-btn__icon">🖌️</span>
-              <span class="big-btn__label">ふで</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="menu-sub-content hidden" id="sub-color" data-submenu-panel="color">
-          <div class="dock__colors" id="color-palette" role="group" aria-label="いろ"></div>
-        </div>
-
-        <div class="menu-sub-content hidden" id="sub-guide" data-submenu-panel="guide">
-          <div class="dock__row">
-            <button type="button" id="guide-layer-back" class="big-btn big-btn--mode big-btn--active" data-layer="back" aria-pressed="true">
-              <span class="big-btn__icon">👻</span>
-              <span class="big-btn__label">なぞる</span>
-            </button>
-            <button type="button" id="guide-layer-front" class="big-btn big-btn--mode" data-layer="front" aria-pressed="false">
-              <span class="big-btn__icon">🎨</span>
-              <span class="big-btn__label">ぬりえ</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="menu-sub-content hidden" id="sub-more" data-submenu-panel="more">
-          <div class="dock__row dock__row--history">
-            <button type="button" id="btn-undo" class="big-btn big-btn--sub">
-              <span class="big-btn__icon">↩️</span>
-              <span class="big-btn__label">もどす</span>
-            </button>
-            <button type="button" id="btn-redo" class="big-btn big-btn--sub">
-              <span class="big-btn__icon">↪️</span>
-              <span class="big-btn__label">進む</span>
-            </button>
-          </div>
-          <div class="dock__row">
-            <button type="button" id="btn-clear" class="big-btn big-btn--sub big-btn--wide">
-              <span class="big-btn__icon">🧹</span>
-              <span class="big-btn__label">おえかけす</span>
-            </button>
-          </div>
-          <div id="image-actions-row" class="dock__row hidden">
-            <button type="button" id="btn-remove-image" class="big-btn big-btn--sub big-btn--danger big-btn--wide">
-              <span class="big-btn__icon">🖼️</span>
-              <span class="big-btn__label">しゃしんだけけす</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <button
-        type="button"
-        class="fab"
-        id="fab"
-        aria-expanded="false"
-        aria-controls="menu-main"
-        aria-label="どうぐをひらく"
-      >
-        <span class="fab__icon" id="fab-icon" aria-hidden="true">✏️</span>
-        <span class="fab__color" id="fab-color" aria-hidden="true"></span>
-      </button>
-
-      <input type="file" id="image-input" accept="image/*" hidden>
-    </div>
 
     <details class="grownup">
       <summary>おとな用</summary>
@@ -162,6 +46,122 @@
     </details>
   </div>
 
-  <script src="app.js?v=10"></script>
+  <div class="menu-backdrop hidden" id="menu-backdrop" aria-hidden="true"></div>
+
+  <div class="menu-system" id="menu-system">
+    <div class="menu-panel menu-panel--main hidden" id="menu-main" role="dialog" aria-label="どうぐメニュー">
+      <p class="menu-panel__heading">なにをする？</p>
+      <div class="menu-grid">
+        <button type="button" class="menu-item" data-submenu="pen">
+          <span class="menu-item__icon">✏️</span>
+          <span class="menu-item__label">えんぴつ</span>
+        </button>
+        <button type="button" class="menu-item" data-action="fill">
+          <span class="menu-item__icon">🪣</span>
+          <span class="menu-item__label">ぬる</span>
+        </button>
+        <button type="button" class="menu-item" data-submenu="color">
+          <span class="menu-item__icon">🎨</span>
+          <span class="menu-item__label">いろ</span>
+        </button>
+        <button type="button" class="menu-item" data-action="photo">
+          <span class="menu-item__icon">📷</span>
+          <span class="menu-item__label">しゃしん</span>
+        </button>
+        <button type="button" class="menu-item" data-submenu="guide">
+          <span class="menu-item__icon">📖</span>
+          <span class="menu-item__label">てびき</span>
+        </button>
+        <button type="button" class="menu-item" data-submenu="more">
+          <span class="menu-item__icon">🔧</span>
+          <span class="menu-item__label">さわる</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="menu-panel menu-panel--sub hidden" id="menu-sub" role="dialog" aria-label="くわしくえらぶ">
+      <button type="button" class="menu-panel__back" id="menu-sub-back" aria-label="もどる">← もどる</button>
+      <p class="menu-panel__heading" id="menu-sub-title"></p>
+
+      <div class="menu-sub-content hidden" id="sub-pen" data-submenu-panel="pen">
+        <div class="dock__row dock__brushes" id="brush-row">
+          <button type="button" class="big-btn big-btn--brush big-btn--active" data-brush="pen" aria-pressed="true">
+            <span class="big-btn__icon">✏️</span>
+            <span class="big-btn__label">えんぴつ</span>
+          </button>
+          <button type="button" class="big-btn big-btn--brush" data-brush="marker" aria-pressed="false">
+            <span class="big-btn__icon">🖊️</span>
+            <span class="big-btn__label">マーカー</span>
+          </button>
+          <button type="button" class="big-btn big-btn--brush" data-brush="crayon" aria-pressed="false">
+            <span class="big-btn__icon">🖍️</span>
+            <span class="big-btn__label">クレヨン</span>
+          </button>
+          <button type="button" class="big-btn big-btn--brush" data-brush="brush" aria-pressed="false">
+            <span class="big-btn__icon">🖌️</span>
+            <span class="big-btn__label">ふで</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="menu-sub-content hidden" id="sub-color" data-submenu-panel="color">
+        <div class="dock__colors" id="color-palette" role="group" aria-label="いろ"></div>
+      </div>
+
+      <div class="menu-sub-content hidden" id="sub-guide" data-submenu-panel="guide">
+        <div class="dock__row">
+          <button type="button" id="guide-layer-back" class="big-btn big-btn--mode big-btn--active" data-layer="back" aria-pressed="true">
+            <span class="big-btn__icon">👻</span>
+            <span class="big-btn__label">なぞる</span>
+          </button>
+          <button type="button" id="guide-layer-front" class="big-btn big-btn--mode" data-layer="front" aria-pressed="false">
+            <span class="big-btn__icon">🎨</span>
+            <span class="big-btn__label">ぬりえ</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="menu-sub-content hidden" id="sub-more" data-submenu-panel="more">
+        <div class="dock__row dock__row--history">
+          <button type="button" id="btn-undo" class="big-btn big-btn--sub">
+            <span class="big-btn__icon">↩️</span>
+            <span class="big-btn__label">もどす</span>
+          </button>
+          <button type="button" id="btn-redo" class="big-btn big-btn--sub">
+            <span class="big-btn__icon">↪️</span>
+            <span class="big-btn__label">進む</span>
+          </button>
+        </div>
+        <div class="dock__row">
+          <button type="button" id="btn-clear" class="big-btn big-btn--sub big-btn--wide">
+            <span class="big-btn__icon">🧹</span>
+            <span class="big-btn__label">おえかけす</span>
+          </button>
+        </div>
+        <div id="image-actions-row" class="dock__row hidden">
+          <button type="button" id="btn-remove-image" class="big-btn big-btn--sub big-btn--danger big-btn--wide">
+            <span class="big-btn__icon">🖼️</span>
+            <span class="big-btn__label">しゃしんだけけす</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <button
+      type="button"
+      class="fab"
+      id="fab"
+      aria-expanded="false"
+      aria-controls="menu-main"
+      aria-label="どうぐをひらく"
+    >
+      <span class="fab__icon" id="fab-icon" aria-hidden="true">✏️</span>
+      <span class="fab__color" id="fab-color" aria-hidden="true"></span>
+    </button>
+
+    <input type="file" id="image-input" accept="image/*" hidden>
+  </div>
+
+  <script src="app.js?v=11"></script>
 </body>
 </html>

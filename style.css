@@ -120,21 +120,21 @@ body {
 
 /* ── FAB & Menu ── */
 
-.menu-system {
-  position: fixed;
-  right: max(0.75rem, env(safe-area-inset-right));
-  bottom: max(0.75rem, env(safe-area-inset-bottom));
-  z-index: 200;
-  pointer-events: none;
-}
-
 .menu-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 199;
+  z-index: 300;
   background: rgba(61, 52, 41, 0.35);
-  pointer-events: auto;
   animation: fade-in 0.2s ease;
+}
+
+.menu-system {
+  position: fixed;
+  right: max(0.75rem, calc((100vw - min(900px, 100vw)) / 2 + 0.75rem));
+  bottom: max(0.75rem, env(safe-area-inset-bottom));
+  z-index: 310;
+  width: var(--fab-size);
+  height: var(--fab-size);
 }
 
 @keyframes fade-in {
@@ -152,8 +152,8 @@ body {
   border-radius: 20px;
   padding: 0.85rem;
   box-shadow: 0 8px 32px rgba(61, 52, 41, 0.18);
-  pointer-events: auto;
   animation: slide-up 0.25s ease;
+  z-index: 1;
 }
 
 @keyframes slide-up {
@@ -241,6 +241,7 @@ body {
 
 .fab {
   position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -251,7 +252,7 @@ body {
   background: var(--accent);
   box-shadow: 0 4px 0 var(--accent-dark), 0 6px 20px rgba(232, 111, 48, 0.35);
   cursor: pointer;
-  pointer-events: auto;
+  touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }

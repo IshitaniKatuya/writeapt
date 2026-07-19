@@ -677,12 +677,23 @@
   }
 
   function bindEvents() {
-    fab.addEventListener("click", toggleMenu);
+    fab.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleMenu();
+    });
+
     menuBackdrop.addEventListener("click", closeMenu);
-    menuSubBack.addEventListener("click", backToMainMenu);
+    menuMain.addEventListener("click", (e) => e.stopPropagation());
+    menuSub.addEventListener("click", (e) => e.stopPropagation());
+    menuSubBack.addEventListener("click", (e) => {
+      e.stopPropagation();
+      backToMainMenu();
+    });
 
     mainMenuItems.forEach((item) => {
-      item.addEventListener("click", () => {
+      item.addEventListener("click", (e) => {
+        e.stopPropagation();
         const submenu = item.dataset.submenu;
         const action = item.dataset.action;
 
@@ -706,14 +717,16 @@
     });
 
     brushButtons.forEach((btn) => {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
         setBrush(btn.dataset.brush);
         closeMenu();
       });
     });
 
     layerButtons.forEach((btn) => {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
         setGuideLayer(btn.dataset.layer);
         closeMenu();
       });
