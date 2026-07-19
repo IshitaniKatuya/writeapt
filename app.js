@@ -11,6 +11,13 @@
     brush: { widthMult: 2.6, alpha: 0.65 },
   };
 
+  const SUBMENU_TITLES = {
+    pen: "えんぴつをえらぶ",
+    color: "いろをえらぶ",
+    guide: "てびきのしかた",
+    more: "さわる",
+  };
+
   const practiceText = document.getElementById("practice-text");
   const fontSizeInput = document.getElementById("font-size");
   const lineHeightInput = document.getElementById("line-height");
@@ -30,19 +37,22 @@
   const imageInput = document.getElementById("image-input");
   const imageEditBar = document.getElementById("image-edit-bar");
   const imageActionsRow = document.getElementById("image-actions-row");
-  const toolPanel = document.getElementById("tool-panel");
-  const toolPanelToggle = document.getElementById("tool-panel-toggle");
-  const toolPanelLabel = document.getElementById("tool-panel-label");
-  const toolPanelStatus = document.getElementById("tool-panel-status");
-  const dock = document.getElementById("dock");
+  const menuBackdrop = document.getElementById("menu-backdrop");
+  const menuMain = document.getElementById("menu-main");
+  const menuSub = document.getElementById("menu-sub");
+  const menuSubBack = document.getElementById("menu-sub-back");
+  const menuSubTitle = document.getElementById("menu-sub-title");
+  const fab = document.getElementById("fab");
+  const fabIcon = document.getElementById("fab-icon");
+  const fabColor = document.getElementById("fab-color");
   const canvasWrapper = document.getElementById("canvas-wrapper");
   const guideCanvas = document.getElementById("guide-canvas");
   const drawCanvas = document.getElementById("draw-canvas");
   const colorPalette = document.getElementById("color-palette");
-  const brushRow = document.getElementById("brush-row");
-  const toolButtons = document.querySelectorAll("[data-tool]");
   const brushButtons = document.querySelectorAll("[data-brush]");
   const layerButtons = document.querySelectorAll("[data-layer]");
+  const mainMenuItems = document.querySelectorAll(".menu-item");
+  const submenuPanels = document.querySelectorAll("[data-submenu-panel]");
 
   const guideCtx = guideCanvas.getContext("2d");
   const drawCtx = drawCanvas.getContext("2d");
@@ -66,14 +76,15 @@
   };
   let isDraggingImage = false;
   let imageDragStart = null;
-  let toolPanelOpen = false;
+  let menuOpen = false;
+  let currentSubmenu = null;
 
-  const TOOL_STATUS = {
-    pen: "✏️ えんぴつ",
-    fill: "🪣 ぬる",
+  const TOOL_ICONS = {
+    pen: "✏️",
+    fill: "🪣",
   };
 
-  const BRUSH_STATUS = {
+  const BRUSH_ICONS = {
     pen: "✏️",
     marker: "🖊️",
     crayon: "🖍️",
@@ -126,32 +137,75 @@
   }
 
   function updateLayout() {
-    if (!toolPanel) return;
-    const panelHeight = toolPanel.offsetHeight + 8;
-    document.documentElement.style.setProperty("--dock-h", `${panelHeight}px`);
     resizeCanvases();
   }
 
-  function updateToolPanelStatus() {
-    if (!toolPanelStatus) return;
+  function updateFabStatus() {
     if (currentTool === "fill") {
-      toolPanelStatus.textContent = TOOL_STATUS.fill;
-      return;
+      fabIcon.textContent = TOOL_ICONS.fill;
+    } else {
+      fabIcon.textContent = BRUSH_ICONS[currentBrush] || TOOL_ICONS.pen;
     }
-    const brushIcon = BRUSH_STATUS[currentBrush] || "✏️";
-    toolPanelStatus.textContent = `${brushIcon} えんぴつ`;
+    fabColor.style.background = currentColor;
   }
 
-  function setToolPanel(open) {
-    toolPanelOpen = open;
-    toolPanel.classList.toggle("tool-panel--collapsed", !open);
-    toolPanelToggle.setAttribute("aria-expanded", String(open));
-    toolPanelLabel.textContent = open ? "とじる ▼" : "どうぐをひらく ▲";
-    updateLayout();
+  function updateMainMenuActive() {
+    mainMenuItems.forEach((item) => {
+      const submenu = item.dataset.submenu;
+      const action = item.dataset.action;
+      let active = false;
+      if (action === "fill") active = currentTool === "fill";
+      else if (submenu === "pen") active = currentTool === "pen";
+      item.classList.toggle("menu-item--active", active);
+    });
   }
 
-  function toggleToolPanel() {
-    setToolPanel(!toolPanelOpen);
+  function closeMenu() {
+    menuOpen = false;
+    currentSubmenu = null;
+    menuBackdrop.classList.add("hidden");
+    menuMain.classList.add("hidden");
+    menuSub.classList.add("hidden");
+    submenuPanels.forEach((panel) => panel.classList.add("hidden"));
+    fab.classList.remove("fab--open");
+    fab.setAttribute("aria-expanded", "false");
+    fab.setAttribute("aria-label", "どうぐをひらく");
+  }
+
+  function openMainMenu() {
+    menuOpen = true;
+    currentSubmenu = null;
+    menuBackdrop.classList.remove("hidden");
+    menuMain.classList.remove("hidden");
+    menuSub.classList.add("hidden");
+    submenuPanels.forEach((panel) => panel.classList.add("hidden"));
+    fab.classList.add("fab--open");
+    fab.setAttribute("aria-expanded", "true");
+    fab.setAttribute("aria-label", "とじる");
+    updateMainMenuActive();
+  }
+
+  function openSubmenu(name) {
+    currentSubmenu = name;
+    menuMain.classList.add("hidden");
+    menuSub.classList.remove("hidden");
+    menuSubTitle.textContent = SUBMENU_TITLES[name] || "";
+    submenuPanels.forEach((panel) => {
+      panel.classList.toggle("hidden", panel.dataset.submenuPanel !== name);
+    });
+  }
+
+  function backToMainMenu() {
+    currentSubmenu = null;
+    menuSub.classList.add("hidden");
+    submenuPanels.forEach((panel) => panel.classList.add("hidden"));
+    menuMain.classList.remove("hidden");
+    updateMainMenuActive();
+  }
+
+  function toggleMenu() {
+    if (menuOpen) closeMenu();
+    else openMainMenu();
   }
 
   function resetImageTransform() {
@@ -204,14 +258,9 @@
 
   function setTool(tool) {
     currentTool = tool;
-    toolButtons.forEach((btn) => {
-      const active = btn.dataset.tool === tool;
-      btn.classList.toggle("big-btn--active", active);
-      btn.setAttribute("aria-pressed", String(active));
-    });
-    brushRow.classList.toggle("hidden", tool !== "pen");
     drawCanvas.classList.toggle("cursor-fill", tool === "fill" && !isImageEditActive());
-    updateToolPanelStatus();
+    updateFabStatus();
+    updateMainMenuActive();
   }
 
   function setBrush(brush) {
@@ -222,13 +271,7 @@
       btn.classList.toggle("big-btn--active", active);
       btn.setAttribute("aria-pressed", String(active));
     });
-    if (currentTool !== "pen") setTool("pen");
-    updateToolPanelStatus();
-  }
-
-  function getBrushWidth(baseWidth, brushType) {
-    const config = BRUSH_CONFIG[brushType] || BRUSH_CONFIG.pen;
-    return baseWidth * config.widthMult;
+    setTool("pen");
   }
 
   function drawStrokeSegment(ctx, from, to, color, baseWidth, brushType) {
@@ -289,6 +332,7 @@
     colorPalette.querySelectorAll(".palette__color").forEach((btn) => {
       btn.classList.toggle("palette__color--active", btn.dataset.color === color);
     });
+    updateFabStatus();
   }
 
   function buildPalette() {
@@ -299,7 +343,10 @@
       btn.dataset.color = color;
       btn.style.background = color;
       btn.setAttribute("aria-label", `いろ ${index + 1}`);
-      btn.addEventListener("click", () => setColor(color));
+      btn.addEventListener("click", () => {
+        setColor(color);
+        closeMenu();
+      });
       colorPalette.appendChild(btn);
     });
     setColor(KID_COLORS[0]);
@@ -530,6 +577,7 @@
   }
 
   function startDrawing(event) {
+    if (menuOpen) return;
     event.preventDefault();
 
     if (isImageEditActive()) {
@@ -629,18 +677,46 @@
   }
 
   function bindEvents() {
-    toolPanelToggle.addEventListener("click", toggleToolPanel);
+    fab.addEventListener("click", toggleMenu);
+    menuBackdrop.addEventListener("click", closeMenu);
+    menuSubBack.addEventListener("click", backToMainMenu);
 
-    toolButtons.forEach((btn) => {
-      btn.addEventListener("click", () => setTool(btn.dataset.tool));
+    mainMenuItems.forEach((item) => {
+      item.addEventListener("click", () => {
+        const submenu = item.dataset.submenu;
+        const action = item.dataset.action;
+
+        if (submenu) {
+          openSubmenu(submenu);
+          if (submenu === "pen") setTool("pen");
+          return;
+        }
+
+        if (action === "fill") {
+          setTool("fill");
+          closeMenu();
+          return;
+        }
+
+        if (action === "photo") {
+          closeMenu();
+          imageInput.click();
+        }
+      });
     });
 
     brushButtons.forEach((btn) => {
-      btn.addEventListener("click", () => setBrush(btn.dataset.brush));
+      btn.addEventListener("click", () => {
+        setBrush(btn.dataset.brush);
+        closeMenu();
+      });
     });
 
     layerButtons.forEach((btn) => {
-      btn.addEventListener("click", () => setGuideLayer(btn.dataset.layer));
+      btn.addEventListener("click", () => {
+        setGuideLayer(btn.dataset.layer);
+        closeMenu();
+      });
     });
 
     btnClear.addEventListener("click", () => {
@@ -685,7 +761,7 @@
         clearTimeout(layoutTimer);
         layoutTimer = setTimeout(updateLayout, 50);
       });
-      observer.observe(toolPanel);
+      observer.observe(canvasWrapper);
     }
   }
 
@@ -693,7 +769,7 @@
     buildPalette();
     setBrush("pen");
     setGuideLayer("back");
-    updateToolPanelStatus();
+    updateFabStatus();
     bindEvents();
     requestAnimationFrame(() => {
       updateLayout();
