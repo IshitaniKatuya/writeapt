@@ -86,7 +86,41 @@
               </label>
               <button type="button" id="btn-remove-image" class="btn btn--ghost hidden">削除</button>
             </div>
-            <p class="field__hint">白黒の手本として表示されます</p>
+
+            <div id="image-edit-controls" class="image-edit hidden">
+              <p class="field__hint image-edit__hint">ドラッグまたはスライダーで調整</p>
+
+              <label class="slider">
+                <span class="slider__head">
+                  <span class="slider__label">大きさ</span>
+                  <span id="image-scale-value" class="slider__value">100%</span>
+                </span>
+                <input type="range" id="image-scale" min="20" max="300" value="100">
+              </label>
+
+              <label class="slider">
+                <span class="slider__head">
+                  <span class="slider__label">横位置</span>
+                  <span id="image-pos-x-value" class="slider__value">0</span>
+                </span>
+                <input type="range" id="image-pos-x" min="-100" max="100" value="0">
+              </label>
+
+              <label class="slider">
+                <span class="slider__head">
+                  <span class="slider__label">縦位置</span>
+                  <span id="image-pos-y-value" class="slider__value">0</span>
+                </span>
+                <input type="range" id="image-pos-y" min="-100" max="100" value="0">
+              </label>
+
+              <button type="button" id="btn-confirm-image" class="btn btn--primary btn--full">✓ 確定</button>
+            </div>
+
+            <div id="image-locked-controls" class="image-locked hidden">
+              <p class="field__hint">配置を確定済み — なぞって練習できます</p>
+              <button type="button" id="btn-reedit-image" class="btn btn--ghost btn--full">再調整</button>
+            </div>
           </div>
 
           <div class="sliders">

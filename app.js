@@ -17,7 +17,17 @@
   const btnClear = document.getElementById("btn-clear");
   const btnUndo = document.getElementById("btn-undo");
   const btnRemoveImage = document.getElementById("btn-remove-image");
+  const btnConfirmImage = document.getElementById("btn-confirm-image");
+  const btnReeditImage = document.getElementById("btn-reedit-image");
   const imageInput = document.getElementById("image-input");
+  const imageEditControls = document.getElementById("image-edit-controls");
+  const imageLockedControls = document.getElementById("image-locked-controls");
+  const imageScaleInput = document.getElementById("image-scale");
+  const imagePosXInput = document.getElementById("image-pos-x");
+  const imagePosYInput = document.getElementById("image-pos-y");
+  const imageScaleValue = document.getElementById("image-scale-value");
+  const imagePosXValue = document.getElementById("image-pos-x-value");
+  const imagePosYValue = document.getElementById("image-pos-y-value");
   const canvasWrapper = document.getElementById("canvas-wrapper");
   const guideCanvas = document.getElementById("guide-canvas");
   const drawCanvas = document.getElementById("draw-canvas");
@@ -47,6 +57,14 @@
   let guideLayer = "back";
   let guideVisible = true;
   let textUpdateTimer = null;
+  let imageTransform = {
+    scaleMult: 1,
+    offsetXRatio: 0,
+    offsetYRatio: 0,
+    locked: false,
+  };
+  let isDraggingImage = false;
+  let imageDragStart = null;
 
   function getSettings() {
     return {
@@ -58,6 +76,106 @@
     };
   }
 
+  function isImageEditActive() {
+    return currentGuide === "image" && guideImage && !imageTransform.locked;
+  }
+
+  function updateImageLabels() {
+    imageScaleValue.textContent = `${imageScaleInput.value}%`;
+    imagePosXValue.textContent = imagePosXInput.value;
+    imagePosYValue.textContent = imagePosYInput.value;
+  }
+
+  function syncImageInputsFromTransform() {
+    imageScaleInput.value = Math.round(imageTransform.scaleMult * 100);
+    imagePosXInput.value = Math.round(imageTransform.offsetXRatio * 100);
+    imagePosYInput.value = Math.round(imageTransform.offsetYRatio * 100);
+    updateImageLabels();
+  }
+
+  function syncTransformFromInputs() {
+    imageTransform.scaleMult = Number(imageScaleInput.value) / 100;
+    imageTransform.offsetXRatio = Number(imagePosXInput.value) / 100;
+    imageTransform.offsetYRatio = Number(imagePosYInput.value) / 100;
+    updateImageLabels();
+    drawGuide();
+  }
+
+  function updateImageEditUI() {
+    const hasImage = Boolean(guideImage);
+    const editing = hasImage && !imageTransform.locked;
+    const locked = hasImage && imageTransform.locked;
+
+    imageEditControls.classList.toggle("hidden", !editing);
+    imageLockedControls.classList.toggle("hidden", !locked);
+    canvasWrapper.classList.toggle("canvas-wrapper--image-edit", editing);
+
+    if (hasImage) {
+      btnRemoveImage.classList.remove("hidden");
+    } else {
+      btnRemoveImage.classList.add("hidden");
+    }
+
+    updateCanvasHint();
+    updateBadges();
+  }
+
+  function resetImageTransform() {
+    imageTransform = {
+      scaleMult: 1,
+      offsetXRatio: 0,
+      offsetYRatio: 0,
+      locked: false,
+    };
+    syncImageInputsFromTransform();
+  }
+
+  function confirmImage() {
+    if (!guideImage) return;
+    imageTransform.locked = true;
+    isDraggingImage = false;
+    canvasWrapper.classList.remove("canvas-wrapper--dragging");
+    updateImageEditUI();
+  }
+
+  function reeditImage() {
+    if (!guideImage) return;
+    imageTransform.locked = false;
+    updateImageEditUI();
+  }
+
+  function getImageBaseScale() {
+    if (!guideImage) return 1;
+    const padding = 16 * dpr;
+    const maxW = guideCanvas.width - padding * 2;
+    const maxH = guideCanvas.height - padding * 2;
+    return Math.min(maxW / guideImage.width, maxH / guideImage.height);
+  }
+
+  function getImageLayout() {
+    const baseScale = getImageBaseScale();
+    const scale = baseScale * imageTransform.scaleMult;
+    const drawW = Math.max(1, Math.floor(guideImage.width * scale));
+    const drawH = Math.max(1, Math.floor(guideImage.height * scale));
+    const centerX = guideCanvas.width / 2;
+    const centerY = guideCanvas.height / 2;
+    const offsetX = imageTransform.offsetXRatio * (guideCanvas.width / 2);
+    const offsetY = imageTransform.offsetYRatio * (guideCanvas.height / 2);
+    const x = centerX - drawW / 2 + offsetX;
+    const y = centerY - drawH / 2 + offsetY;
+    return { drawW, drawH, x, y };
+  }
+
+  function updateCanvasHint() {
+    if (isImageEditActive()) {
+      canvasHint.textContent = "画像をドラッグするか、スライダーで調整して「確定」";
+      return;
+    }
+    canvasHint.textContent =
+      currentTool === "fill"
+        ? "塗りたい場所をタップ／クリック"
+        : "マウス・指でなぞってください";
+  }
   function updateLabels() {
     fontSizeValue.textContent = `${fontSizeInput.value}px`;
     lineHeightValue.textContent = lineHeightInput.value;
@@ -75,7 +193,10 @@
 
     const mode = currentGuide === "image" ? "画像" : "テキスト";
     const layer = guideLayer === "front" ? "前面" : "背面";
-    guideBadge.textContent = `手本：${mode}・${layer}`;
+    const lock = currentGuide === "image" && guideImage
+      ? (imageTransform.locked ? "・確定済" : "・調整中")
+      : "";
+    guideBadge.textContent = `手本：${mode}・${layer}${lock}`;
   }
 
   function setTool(tool) {
@@ -85,11 +206,8 @@
       btn.classList.toggle("seg-control__btn--active", active);
       btn.setAttribute("aria-pressed", String(active));
     });
-    drawCanvas.classList.toggle("cursor-fill", tool === "fill");
-    canvasHint.textContent =
-      tool === "fill"
-        ? "塗りたい場所をタップ／クリック"
-        : "マウス・指でなぞってください";
+    drawCanvas.classList.toggle("cursor-fill", tool === "fill" && !isImageEditActive());
+    updateCanvasHint();
     updateBadges();
   }
 
@@ -128,7 +246,7 @@
         el.classList.add("hidden");
       });
       drawGuide();
-      updateBadges();
+      updateImageEditUI();
       return;
     }
 
@@ -144,7 +262,7 @@
       el.classList.toggle("hidden", mode !== "text");
     });
     drawGuide();
-    updateBadges();
+    updateImageEditUI();
   }
 
   function setColor(color) {
@@ -238,14 +356,7 @@
     if (!guideVisible || !guideImage) return;
 
     const { guideOpacity } = getSettings();
-    const padding = 16 * dpr;
-    const maxW = guideCanvas.width - padding * 2;
-    const maxH = guideCanvas.height - padding * 2;
-    const scale = Math.min(maxW / guideImage.width, maxH / guideImage.height);
-    const drawW = Math.max(1, Math.floor(guideImage.width * scale));
-    const drawH = Math.max(1, Math.floor(guideImage.height * scale));
-    const x = (guideCanvas.width - drawW) / 2;
-    const y = (guideCanvas.height - drawH) / 2;
+    const { drawW, drawH, x, y } = getImageLayout();
 
     const temp = document.createElement("canvas");
     temp.width = drawW;
@@ -400,6 +511,20 @@
 
   function startDrawing(event) {
     event.preventDefault();
+
+    if (isImageEditActive()) {
+      isDraggingImage = true;
+      canvasWrapper.classList.add("canvas-wrapper--dragging");
+      const point = getPointerPosition(event);
+      imageDragStart = {
+        x: point.x,
+        y: point.y,
+        offsetXRatio: imageTransform.offsetXRatio,
+        offsetYRatio: imageTransform.offsetYRatio,
+      };
+      return;
+    }
+
     const point = getPointerPosition(event);
 
     if (currentTool === "fill") {
@@ -419,6 +544,20 @@
   }
 
   function draw(event) {
+    if (isDraggingImage && isImageEditActive()) {
+      event.preventDefault();
+      const point = getPointerPosition(event);
+      const deltaX = point.x - imageDragStart.x;
+      const deltaY = point.y - imageDragStart.y;
+      imageTransform.offsetXRatio = imageDragStart.offsetXRatio + deltaX / (guideCanvas.width / 2);
+      imageTransform.offsetYRatio = imageDragStart.offsetYRatio + deltaY / (guideCanvas.height / 2);
+      imageTransform.offsetXRatio = Math.max(-1, Math.min(1, imageTransform.offsetXRatio));
+      imageTransform.offsetYRatio = Math.max(-1, Math.min(1, imageTransform.offsetYRatio));
+      syncImageInputsFromTransform();
+      drawGuide();
+      return;
+    }
+
     if (!isDrawing || currentTool !== "pen") return;
     event.preventDefault();
 
@@ -441,6 +580,11 @@
   function stopDrawing() {
     isDrawing = false;
     lastPoint = null;
+    if (isDraggingImage) {
+      isDraggingImage = false;
+      canvasWrapper.classList.remove("canvas-wrapper--dragging");
+      imageDragStart = null;
+    }
   }
 
   function clearDrawing() {
@@ -462,8 +606,9 @@
       const img = new Image();
       img.onload = () => {
         guideImage = img;
-        btnRemoveImage.classList.remove("hidden");
+        resetImageTransform();
         setGuideMode("image");
+        updateImageEditUI();
       };
       img.src = reader.result;
     };
@@ -473,9 +618,12 @@
   function removeImage() {
     guideImage = null;
     imageInput.value = "";
-    btnRemoveImage.classList.add("hidden");
+    resetImageTransform();
+    isDraggingImage = false;
+    canvasWrapper.classList.remove("canvas-wrapper--dragging", "canvas-wrapper--image-edit");
     if (currentGuide === "image") setGuideMode("text");
     else drawGuide();
+    updateImageEditUI();
   }
 
   function bindEvents() {
@@ -520,6 +668,12 @@
     btnClear.addEventListener("click", clearDrawing);
     btnUndo.addEventListener("click", undoAction);
     btnRemoveImage.addEventListener("click", removeImage);
+    btnConfirmImage.addEventListener("click", confirmImage);
+    btnReeditImage.addEventListener("click", reeditImage);
+
+    [imageScaleInput, imagePosXInput, imagePosYInput].forEach((input) => {
+      input.addEventListener("input", syncTransformFromInputs);
+    });
 
     imageInput.addEventListener("change", (event) => {
       const file = event.target.files?.[0];
@@ -546,7 +700,7 @@
     setGuideVisible(true);
     bindEvents();
     resizeCanvases();
-    updateBadges();
+    updateImageEditUI();
   }
 
   init();
