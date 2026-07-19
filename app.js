@@ -30,6 +30,10 @@
   const imageInput = document.getElementById("image-input");
   const imageEditBar = document.getElementById("image-edit-bar");
   const imageActionsRow = document.getElementById("image-actions-row");
+  const toolPanel = document.getElementById("tool-panel");
+  const toolPanelToggle = document.getElementById("tool-panel-toggle");
+  const toolPanelLabel = document.getElementById("tool-panel-label");
+  const toolPanelStatus = document.getElementById("tool-panel-status");
   const dock = document.getElementById("dock");
   const canvasWrapper = document.getElementById("canvas-wrapper");
   const guideCanvas = document.getElementById("guide-canvas");
@@ -62,6 +66,19 @@
   };
   let isDraggingImage = false;
   let imageDragStart = null;
+  let toolPanelOpen = false;
+
+  const TOOL_STATUS = {
+    pen: "✏️ えんぴつ",
+    fill: "🪣 ぬる",
+  };
+
+  const BRUSH_STATUS = {
+    pen: "✏️",
+    marker: "🖊️",
+    crayon: "🖍️",
+    brush: "🖌️",
+  };
 
   function getSettings() {
     return {
@@ -109,10 +126,32 @@
   }
 
   function updateLayout() {
-    if (!dock) return;
-    const dockHeight = dock.offsetHeight + 8;
-    document.documentElement.style.setProperty("--dock-h", `${dockHeight}px`);
+    if (!toolPanel) return;
+    const panelHeight = toolPanel.offsetHeight + 8;
+    document.documentElement.style.setProperty("--dock-h", `${panelHeight}px`);
     resizeCanvases();
+  }
+
+  function updateToolPanelStatus() {
+    if (!toolPanelStatus) return;
+    if (currentTool === "fill") {
+      toolPanelStatus.textContent = TOOL_STATUS.fill;
+      return;
+    }
+    const brushIcon = BRUSH_STATUS[currentBrush] || "✏️";
+    toolPanelStatus.textContent = `${brushIcon} えんぴつ`;
+  }
+
+  function setToolPanel(open) {
+    toolPanelOpen = open;
+    toolPanel.classList.toggle("tool-panel--collapsed", !open);
+    toolPanelToggle.setAttribute("aria-expanded", String(open));
+    toolPanelLabel.textContent = open ? "とじる ▼" : "どうぐをひらく ▲";
+    updateLayout();
+  }
+
+  function toggleToolPanel() {
+    setToolPanel(!toolPanelOpen);
   }
 
   function resetImageTransform() {
@@ -172,6 +211,7 @@
     });
     brushRow.classList.toggle("hidden", tool !== "pen");
     drawCanvas.classList.toggle("cursor-fill", tool === "fill" && !isImageEditActive());
+    updateToolPanelStatus();
   }
 
   function setBrush(brush) {
@@ -183,6 +223,7 @@
       btn.setAttribute("aria-pressed", String(active));
     });
     if (currentTool !== "pen") setTool("pen");
+    updateToolPanelStatus();
   }
 
   function getBrushWidth(baseWidth, brushType) {
@@ -588,6 +629,8 @@
   }
 
   function bindEvents() {
+    toolPanelToggle.addEventListener("click", toggleToolPanel);
+
     toolButtons.forEach((btn) => {
       btn.addEventListener("click", () => setTool(btn.dataset.tool));
     });
@@ -642,7 +685,7 @@
         clearTimeout(layoutTimer);
         layoutTimer = setTimeout(updateLayout, 50);
       });
-      observer.observe(dock);
+      observer.observe(toolPanel);
     }
   }
 
@@ -650,6 +693,7 @@
     buildPalette();
     setBrush("pen");
     setGuideLayer("back");
+    updateToolPanelStatus();
     bindEvents();
     requestAnimationFrame(() => {
       updateLayout();
